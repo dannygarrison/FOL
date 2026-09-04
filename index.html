@@ -434,11 +434,22 @@
 
   .blitz-game{margin-top:28px; flex-direction:column;}
   .blitz-hud{
-    display:flex; justify-content:space-between; align-items:center; background:#0a0d12; border:2px solid var(--line);
-    padding:12px 20px; font-family:'Press Start 2P'; font-size:14px; color:#fff;
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:10px;
+    background:#0a0d12; border:2px solid var(--line);
+    padding:12px 14px; font-family:'Press Start 2P'; color:#fff;
   }
-  .blitz-score{color:var(--text);}
-  .blitz-clock{color:var(--red);}
+  /* Names and scores hug the outer edges; the clock owns the middle. */
+  .blitz-score{display:flex; flex-direction:column; gap:6px; min-width:0;}
+  .blitz-score.start{align-items:flex-start; text-align:left;}
+  .blitz-score.end{align-items:flex-end; text-align:right;}
+  .blitz-team-label{font-size:9px; color:var(--muted); letter-spacing:1px; line-height:1.3;}
+  .blitz-team-pts{font-size:20px; color:var(--text); line-height:1;}
+  .blitz-clock{
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    color:var(--red); text-align:center;
+  }
+  #blitzQuarter{font-size:10px; letter-spacing:1px;}
+  #blitzClock{font-size:17px; line-height:1;}
   .blitz-down{
     text-align:center; font-family:'Press Start 2P'; font-size:11px; color:var(--muted);
     padding:10px 0; letter-spacing:1px;
@@ -474,7 +485,6 @@
     width:100%; height:auto; display:block;
     image-rendering:pixelated; image-rendering:crisp-edges;
   }
-  .blitz-player-img.peccy{width:86%;}
   .blitz-player-tag{
     font-family:'Press Start 2P'; font-size:7px; color:#fff; line-height:1;
     text-shadow:1px 1px 0 rgba(0,0,0,0.9); margin-bottom:3px; white-space:nowrap;
@@ -493,6 +503,9 @@
   }
   .blitz-panel-title{font-family:'Press Start 2P'; font-size:13px; color:var(--blue); letter-spacing:1px; margin-bottom:16px;}
   .blitz-play-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; max-width:420px; margin:0 auto;}
+  /* The late-clock field goal spans the row so it never sits alone in a column. */
+  .blitz-play-fg{grid-column:1 / -1; border-color:var(--red);}
+  .blitz-play-fg:disabled{opacity:0.45; cursor:not-allowed; border-color:var(--line);}
   .blitz-play-btn{
     font-family:'Press Start 2P'; font-size:10px; background:var(--surface-2); border:2px solid var(--line); color:var(--text);
     padding:18px 6px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px; border-radius:4px;
@@ -801,9 +814,18 @@
       <div id="blitzGame" class="blitz-game" style="display:none;">
         <div class="blitz-topbar"><button class="blitz-exit" id="blitzExitBtn" type="button">EXIT GAME</button></div>
         <div class="blitz-hud">
-          <div class="blitz-score" id="blitzScoreYou">YOU 0</div>
-          <div class="blitz-clock" id="blitzClock">Q1 15:00</div>
-          <div class="blitz-score" id="blitzScoreOpp">OPP 0</div>
+          <div class="blitz-score start">
+            <span class="blitz-team-label" id="blitzNameYou">TEAM FOL</span>
+            <span class="blitz-team-pts" id="blitzScoreYou">0</span>
+          </div>
+          <div class="blitz-clock">
+            <span id="blitzQuarter">Q1</span>
+            <span id="blitzClock">15:00</span>
+          </div>
+          <div class="blitz-score end">
+            <span class="blitz-team-label" id="blitzNameOpp">PECCY ARMY</span>
+            <span class="blitz-team-pts" id="blitzScoreOpp">0</span>
+          </div>
         </div>
         <div class="blitz-down" id="blitzDown">1ST &amp; 10 AT THE 25</div>
 
@@ -852,6 +874,7 @@
             <button class="blitz-play-btn" data-play="middle">2<span>RUN MIDDLE</span></button>
             <button class="blitz-play-btn" data-play="right">3<span>RUN RIGHT</span></button>
             <button class="blitz-play-btn" data-play="pass">4<span>PASS</span></button>
+            <button class="blitz-play-btn blitz-play-fg" id="blitzPlayFg" style="display:none;">FG<span id="blitzPlayFgHint">—</span></button>
           </div>
         </div>
 
@@ -2399,7 +2422,7 @@ loadPosts();
     { name:'Team FOL',   short:'FOL',    color:'#4C7DFF', speed:2.55, power:1.22 },
     { name:'Peccy Army', short:'PECCY', color:'#FF9900', speed:2.55, power:1.22 }
   ];
-  const SPRITE_FOL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAATCAYAAACZZ43PAAAAsUlEQVR42mNkQAP/////z4AHMDIyMqLwidWIyyAmBgoBC7rAl1Nz8GrgMUvBb0Dl2pd4DZhsRsAF7cHiJHmB4kBkRJf4fHI2XoN4zVNR9LDANMAkIrekELA7FcUieBj41BLnBYQ6SGzhTQfXzh9nuHb+OGnpABloGVoSn5C2NENClZBXYOoYfKBhgB6qxAKYPgzNbz58x+sCEQFOFD1MhBSja0AH1M+NBgZGDMSIUc0FAGITObJfCoHbAAAAAElFTkSuQmCC';
+  const SPRITE_FOL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAnCAYAAABjYToLAAAEwUlEQVR42rWYsU/jSBTGv1mFkFtNYa2EFqQ0NBRIW2z+AIqjSxMKishNcqcoiihWFCuXuwHpGssFosghhDbQWC5ShBTp9v6E0FGk2QYpoEgohXeTBUtzBZ5hPLZDDGGkCBPbk5+/973nN0MopZj3cDMm6MTgxyziEgIAdGLAXb0B/fE+fMFrgHE4AAwrpfDJwdnj7/sPoI43cwdavQlBOV+/By9aKcE/x9yMya9/PTA3Y/KwCCjvYhHFvc2p99GJEYJLzTFsoWMASH38HQ5jVHjn7bEo87oZM9ZbzlE28NX2Vp6kPv6Gd7EITdPmo9hoNIKmaY+ekgztDhBSRoUq1q4ILWtAxoSmGS/3mLt6A3f1hkMxrJSYamg6MUT2eReLcL5+R7F2BQAopPsopPugEwNmjiIqM18UytiQ+WETpl4pBTJzeysfYNA0Taj/7FC6GRON9X3sXH5hzlEW21uLYYP7JcEd+Bk3AIq1x3Dedw8AAOd3a4FbhnYd53drqJT1ZGA8RDuXD5lX3NuEgy68i/wDnJpxPtz42y/x1fkdsJDfRavdFerd5mhALTNHZ/fYaDQSN42//RIhLO5totXuwrtYVKu6GH/8/VYcV8q6gOLD6LkY2nUM7Tob2nUYPXc2jw3tOpqWBQD46/Nn9vj0a8LQPOP4/6LCy6BcTa6sf66xvk/keZuWRWYC48Yc2vWoF7JQxDnKhsGeGoOzENhcX0nOURaFdD/gpzgQNdxGzxUdR6Jy8ZRi01QMqeZD8dAX0n0AIAv5XcazdWbFjv/MwsxRNC2LvEhWrlQ4xAx4yNZEHuOq3XcP0LQsqH6YqlhcJ7FSwviffwPnFvK7uO8ekCW9PrvHeJ159+lYKMefUB1q4ZSgCPeSCgVAPPjQricz/5JeRyHdh9Fz0bQs0mp3Zw6tDyW8HWWLpmURo+diIb+bPCuX9DpOTm28+3QMAGwhvxupkHddhXddhXOURWN9n8i9Gp0Y4uFUKJO/BSiliT5Oq8P/Ms/zmOd5DB9+MqfVYfjwU3wnf5xWh0XcH5p73LHE8YvAOByH4p84uMbGMjzPE3M0NpYx7lgYdyw0NpYDv5O47TFzVIRRbmH4+4/39+LdKY1Wu4vbwyoxei5OTm1Uyvp8Wms+mQ/HYvqrQBukArbaXVTKOpEL97PB3NUbdRnGVKWmAUbBASD8+ii4J8HUxQZXS4ZQ25hAXx8TWq5cXEjfzLJO9Bel7OTUZiqUohSplHVSKevk9rBKirWrB5UHZwF4rhjv8WYO5cmpLZo6sffg90/edTXS1HJ3UEj3+SspsBrf3soHEuDZHgstNvx1YUQYSaWsBzIt6t7A8k7aeIkaqSltNGu1uyjuBdvlYu0KDgKeCkE9tYnyFBQApPiEJ6d2qGPY3soDtePILSS/jkVCmTmKncvnQwVCqYLJ5cBvlyO3jGSfmDnKOxAmK5wUSoBFqSWtaohaPnjq+ykfKL5+4jB1jiRQkeXCByG3h1VSKevEzFHIe1j0x3tomgZN0wLhkxIiBBW3DTDVY+pEvEzIKlAYM60JYpRnRs9N3JKnZBAzRwn3SvW/q9gaMyXsoVooJ0qSuQillCnZ9tLBogq1/JvTCuurbw5H+S2JAP8DmvvdO5jsTEYAAAAASUVORK5CYII=';
   const SPRITE_PECCY = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAtCAYAAADC+hltAAABsElEQVR42u2ZWxLDIAhFuU7WataUbpZ+KHkQNaJ5fcSZTtup4ilcUQwo03gK7xjjd+bw4QciIiZbA3kmABv7Yjs9IAXFixFmboU5hNR/vggmUBHoLJgkIMYYGeXNHdjsHX851NI8I0Zk4zm36fRD+PEuqDAnp0LptBgl7nc2Zt7NPaT67cQw7lerSUxjesWvvaZl5XKDY/zDS0/i2aKhKrvZUBY0UD9hbZ+cTRPYtSuyAUwGqcHzDmAUt9XbQ5PhxpVnac6srXNz2AUaqwHv+HPu0HDKuGXCXN8DG8Np3jl5/LPp4gMz7J2l0+tjYDUHgfeHkqd8dhbXH7nfEj7tNT03dMXCU7royEHlwpLqXwohRsK6OMEGqqIAafFa1eHSM+bKbFp5rKU8K0E2H9EjIFqhrq6c3OugYg3wZf4P7Howz3gdleeQ0W642THdABERYX0XVtqSbjgKLcneMzm5C3viMkVv4rI9AgjiB9B1cjgnhvjSxQd2axvO0q5eZI+DSf5RSx+9CbsPzDNYuPz8oEKeE3TBdWlMco8kRamEeNrnpfbyzX45h9JuEX9Do0bpD9JzxixYvvrxAAAAAElFTkSuQmCC';
   const YOU_TEAM = 'Team FOL';
   const OPP_TEAM = 'Peccy Army';
@@ -2494,11 +2517,14 @@ loadPosts();
   }
 
   function updateHUD(){
-    document.getElementById('blitzScoreYou').textContent = `${your.toUpperCase()} ${state.scoreYou}`;
-    document.getElementById('blitzScoreOpp').textContent = `${opp.toUpperCase()} ${state.scoreOpp}`;
+    document.getElementById('blitzNameYou').textContent = your.toUpperCase();
+    document.getElementById('blitzNameOpp').textContent = opp.toUpperCase();
+    document.getElementById('blitzScoreYou').textContent = state.scoreYou;
+    document.getElementById('blitzScoreOpp').textContent = state.scoreOpp;
     const left = Math.max(0, Math.ceil(state.clock));
     const m = Math.floor(left/60), s = String(left%60).padStart(2,'0');
-    document.getElementById('blitzClock').textContent = `Q${state.quarter} ${m}:${s}`;
+    document.getElementById('blitzQuarter').textContent = `Q${state.quarter}`;
+    document.getElementById('blitzClock').textContent = `${m}:${s}`;
     const yl = Math.round(state.spot <= 50 ? state.spot : 100-state.spot);
     const side = state.spot <= 50 ? (state.possession==='you'?'OWN':'OPP') : (state.possession==='you'?'OPP':'OWN');
     const downTxt = ['1ST','2ND','3RD','4TH'][state.down-1] || '4TH';
@@ -2548,6 +2574,7 @@ loadPosts();
     setFieldMsg('', false);
     if(state.down === 4){ showFourthDownChoice(); return; }
     state.phase = 'offense-call';
+    updateLateFgButton();
     document.getElementById('blitzOffenseCall').style.display = 'block';
   }
 
@@ -2557,6 +2584,9 @@ loadPosts();
       const choice = cpuFourthDownChoice();
       if(choice === 'punt'){ executePunt(`${opp.toUpperCase()} PUNTS`); return; }
       if(choice === 'fg'){ cpuFieldGoal(); return; }
+    } else if(cpuTakesLateFieldGoal()){
+      cpuFieldGoal();
+      return;
     }
     state.phase = 'defense-call';
     document.getElementById('blitzDefenseCall').style.display = 'block';
@@ -2567,6 +2597,24 @@ loadPosts();
   }
 
   // Punt, kick, or go — the CPU weighs field position, distance, and the scoreboard.
+  // Clock management inside the last minute: on any down, take the points rather
+  // than run another play the Peccys may not have time to follow up on. They still
+  // play on when a field goal wouldn't matter — down by more than three at the end,
+  // or when there's time left to do better.
+  function cpuTakesLateFieldGoal(){
+    if(state.clock > 60) return false;
+    const endOfHalf = state.quarter === 2 || state.quarter === 4;
+    if(!endOfHalf) return false;
+    const dist = fgKickDistance();
+    if(dist > 52) return false;
+    const margin = state.scoreOpp - state.scoreYou;
+    // In the fourth, only kick if it ties or wins it.
+    if(state.quarter === 4 && margin < -3) return false;
+    // With more than a down's worth of clock, only rush the kick from short range.
+    if(state.clock > 25 && state.down <= 2 && dist > 42) return false;
+    return true;
+  }
+
   function cpuFourthDownChoice(){
     const d = state.distance, spot = state.spot, dist = fgKickDistance();
     const margin = state.scoreOpp - state.scoreYou;
@@ -2603,6 +2651,26 @@ loadPosts();
 
   function fgKickDistance(){ return (100 - state.spot) + 17; }
 
+  // Inside the last minute of a quarter you can take the points on any down, the
+  // way a real offense would rather than run one more play and lose the clock.
+  function updateLateFgButton(){
+    const btn = document.getElementById('blitzPlayFg');
+    const late = state.clock <= 60;
+    const inRange = state.spot >= 45;
+    if(!late){ btn.style.display = 'none'; return; }
+    btn.style.display = '';
+    btn.disabled = !inRange;
+    document.getElementById('blitzPlayFgHint').textContent =
+      inRange ? fgKickDistance() + ' YD TRY' : 'OUT OF RANGE';
+  }
+
+  function startFieldGoal(){
+    hidePanels();
+    state.phase = 'fg-kick';
+    document.getElementById('blitzFgDist').textContent = fgKickDistance() + ' YARD ATTEMPT';
+    document.getElementById('blitzFieldGoalKick').style.display = 'block';
+  }
+
   function showFourthDownChoice(){
     state.phase = 'fourth-down';
     const dist = fgKickDistance();
@@ -2617,6 +2685,7 @@ loadPosts();
     if(!state || state.phase !== 'fourth-down') return;
     hidePanels();
     state.phase = 'offense-call';
+    updateLateFgButton();
     document.getElementById('blitzOffenseCall').style.display = 'block';
     setFieldMsg('', false);
   });
@@ -2625,10 +2694,13 @@ loadPosts();
 
   document.getElementById('blitz4thFg').addEventListener('click', ()=>{
     if(!state || state.phase !== 'fourth-down') return;
-    hidePanels();
-    state.phase = 'fg-kick';
-    document.getElementById('blitzFgDist').textContent = fgKickDistance() + ' YARD ATTEMPT';
-    document.getElementById('blitzFieldGoalKick').style.display = 'block';
+    startFieldGoal();
+  });
+
+  document.getElementById('blitzPlayFg').addEventListener('click', ()=>{
+    if(!state || state.phase !== 'offense-call') return;
+    if(state.spot < 45) return;
+    startFieldGoal();
   });
 
   function onPunt(){
@@ -2708,7 +2780,7 @@ loadPosts();
     }, 650);
   }
 
-  document.querySelectorAll('#blitzOffenseCall .blitz-play-btn').forEach(btn=>{
+  document.querySelectorAll('#blitzOffenseCall .blitz-play-btn[data-play]').forEach(btn=>{
     btn.addEventListener('click', ()=> onOffenseCall(btn.dataset.play));
   });
   document.querySelectorAll('.blitz-def-btn').forEach(btn=>{
@@ -3226,6 +3298,14 @@ loadPosts();
     state.quarter += 1;
     state.clock = QUARTER_SECONDS;
     state.phase = 'animating';
+    // You receive the opening kickoff, so the Peccys get the second-half kickoff.
+    // Everything else carries over between quarters as normal.
+    if(ended === 2){
+      state.possession = 'opp';
+      state.spot = 25;
+      state.down = 1;
+      state.distance = firstDownDistance();
+    }
     flashMsg(ended === 2 ? 'HALFTIME' : `END OF Q${ended}`, ()=>{
       if(state.possession === 'you'){ showOffenseCall(); } else { showDefenseCall(); }
     });
