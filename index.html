@@ -262,8 +262,13 @@
     font-family:'Work Sans', sans-serif; font-weight:600; font-size:10px;
     color:var(--muted); letter-spacing:0.3px; line-height:1;
   }
-  .manager-card .m-team{font-size:13px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
-  .manager-card .m-history{font-size:12px; color:var(--muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--line); line-height:1.6;}
+  .manager-card .m-team{font-size:13px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}  .manager-card .m-history{font-size:12px; color:var(--muted); margin-top:8px; padding-top:8px; border-top:1px solid var(--line); line-height:1.6;}
+  /* Footnote under a table, e.g. the regular-season qualifier on standings. */
+  .table-note{font-size:11px; color:var(--muted); margin-top:10px; letter-spacing:0.2px;}
+  /* Money reads green when ahead, red when down. */
+  .earn-pos{color:#4CAF7D; font-weight:600;}
+  .earn-neg{color:var(--red); font-weight:600;}
+  .m-earnings{font-size:13px; color:var(--muted); margin-top:10px; padding-top:10px; border-top:1px solid var(--line);}
 
   .hof-tally{margin-top:40px; padding-top:24px; border-top:1px solid var(--line);}
   .hof-row{display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:15px;}
@@ -773,8 +778,7 @@
     <section id="history">
       <h2 class="section-title">League History</h2>
       <select class="standings-year-select" id="standingsYearSelect"></select>
-      <h2 class="section-title" style="font-size:20px; margin-top:26px; margin-bottom:12px;">Regular Season</h2>
-      <div class="standings-table-wrap">
+      <div class="standings-table-wrap" style="margin-top:20px;">
         <table class="standings-table" id="standingsTable">
           <thead>
             <tr><th class="st-rank"></th><th>Manager</th><th>W-L-T</th><th>PF</th><th>PA</th></tr>
@@ -782,6 +786,7 @@
           <tbody id="standingsBody"></tbody>
         </table>
       </div>
+      <p class="table-note">* Regular season only. Playoff results are shown in the bracket below.</p>
       <div id="playoffBracketWrap" style="display:none;">
         <h2 class="section-title" style="font-size:20px; margin-top:32px;">Playoff Bracket</h2>
         <div id="playoffBracket"></div>
@@ -791,7 +796,7 @@
         <div class="standings-table-wrap">
           <table class="standings-table" id="standingsFormerTable">
             <thead>
-              <tr><th class="st-rank"></th><th>Manager</th><th>W-L-T</th><th>PF</th><th>PA</th><th>PCT</th></tr>
+              <tr><th class="st-rank"></th><th>Manager</th><th>W-L-T</th><th>PF</th><th>PA</th><th>PCT</th><th>Earnings</th></tr>
             </thead>
             <tbody id="standingsFormerBody"></tbody>
           </table>
@@ -822,6 +827,7 @@
           <span class="cabinet-key-item"><span class="k-emoji">&#127942;</span> Champion</span>
           <span class="cabinet-key-item"><span class="k-emoji">&#129352;</span> Runner-up</span>
           <span class="cabinet-key-item"><span class="k-emoji">&#128169;</span> Last place</span>
+          <span class="cabinet-key-item"><span class="k-emoji">&#128165;</span> Weekly high score</span>
         </div>
       </div>
       <div class="manager-grid" id="managerGrid"></div>
@@ -1512,6 +1518,23 @@ let sortAllFormer = {key:'pct', dir:'desc'};
 
 function parseWins(record){ return parseInt(record.split('-')[0], 10) || 0; }
 
+// Career earnings: payouts won minus buy-ins paid, 2016-2025.
+// Season payouts (title, runner-up, best record) plus weekly high-score prizes.
+// Every season's pot balances to the dollar once leftovers land on 1st place:
+// 2016 winner $520 (pot had $20 spare), 2017 winner $420 (pot was $80 short),
+// 2021-2024 winners $1,520 each (each had $40 spare).
+// Former managers are omitted — no card, and they sort last in the All-Time table.
+const careerEarnings = {
+  Whit:3090, Beau:1870, Andrew:1220, Evan:380, Dave:280, Nick:40,
+  Danny:-480, Corey:-1210, Steve:-1240, Mike:-1350, Craig:-1400, Ryan:-1420
+};
+function earningsHTML(v){
+  if(v === undefined || v === null) return '<span class="muted">&mdash;</span>';
+  const cls = v < 0 ? 'earn-neg' : 'earn-pos';
+  const sign = v < 0 ? '\u2212' : '+';
+  return `<span class="${cls}">${sign}$${Math.abs(v).toLocaleString()}</span>`;
+}
+
 function computeAllTime(){
   const agg = {};
   Object.keys(seasonStandings).forEach(year=>{
@@ -1527,7 +1550,7 @@ function computeAllTime(){
   return Object.entries(agg).map(([manager,v])=>{
     const gp = v.w+v.l+v.t;
     const pct = gp ? (v.w + 0.5*v.t)/gp : 0;
-    return {manager, ...v, pct};
+    return {manager, ...v, pct, earnings: careerEarnings[manager]};
   }).sort((a,b)=> b.pct - a.pct || b.w - a.w);
 }
 
@@ -1565,7 +1588,8 @@ function allTimeTheadHTML(state){
     <th class="sortable" data-key="wins">W-L-T${sortIndicator(state,'wins')}</th>
     <th class="sortable" data-key="pf">PF${sortIndicator(state,'pf')}</th>
     <th class="sortable" data-key="pa">PA${sortIndicator(state,'pa')}</th>
-    <th class="sortable" data-key="pct">PCT${sortIndicator(state,'pct')}</th>`;
+    <th class="sortable" data-key="pct">PCT${sortIndicator(state,'pct')}</th>
+    <th class="sortable" data-key="earnings">Earnings${sortIndicator(state,'earnings')}</th>`;
 }
 
 function bindSortHeaders(theadEl, state, rerenderFn){
@@ -1601,6 +1625,7 @@ function allTimeRowHTML(r, i){
       <td>${r.pf.toFixed(2)}</td>
       <td>${r.pa.toFixed(2)}</td>
       <td>${r.pct.toFixed(3).replace(/^0\./,'.')}</td>
+      <td>${earningsHTML(r.earnings)}</td>
     </tr>`;
 }
 
@@ -1809,7 +1834,10 @@ function renderStandingsTable(){
     const all = computeAllTime();
     const current = all.filter(r => CURRENT_MANAGERS.includes(r.manager));
     const former = all.filter(r => !CURRENT_MANAGERS.includes(r.manager));
-    const atAccessor = (r,k)=> k==='wins' ? r.w : r[k];
+    // Managers with no reconciled earnings sort below everyone, either direction.
+    const atAccessor = (r,k)=> k==='wins' ? r.w
+      : k==='earnings' ? (r.earnings === undefined ? -Infinity : r.earnings)
+      : r[k];
 
     thead.innerHTML = allTimeTheadHTML(sortAllMain);
     tbody.innerHTML = sortRows(current, sortAllMain, atAccessor).map((r,i) => allTimeRowHTML(r,i)).join('');
@@ -2476,23 +2504,36 @@ function joinNames(list){
 }
 const managerRivals = computeManagerRivals();
 
+// Weekly high-score prizes won, 2016-2025 regular seasons (135 weeks total).
+// Read off the Yahoo matchup pages and reconciled against every team's season PF.
+// Former managers are included for the record even though they have no card:
+// Schlatz 2, Dylan 1, Ivan 1 (all 2016), Sameer 1 (2017).
+const weeklyHighScores = {
+  Beau:16, Evan:16, Dave:15, Danny:14, Whit:12, Andrew:11, Steve:11,
+  Craig:8, Nick:8, Mike:7, Corey:6, Ryan:6,
+  Schlatz:2, Dylan:1, Ivan:1, Sameer:1
+};
+
 document.getElementById('managerGrid').innerHTML = CURRENT_MANAGERS.slice().sort().map(name => {
-  const a = managerAllegiances[name];
   const goat = managerGoats[name];
   const fin = managerFinishes[name] || { titles:[], runnerUps:[], lasts:[] };
   const rival = managerRivals[name];
   // One badge per finish, each stamped with the year it happened.
   const badge = (emoji, label, years) => years.map(y =>
     `<span class="m-badge" title="${label} ${y}">${emoji}<span class="m-badge-year">${y}</span></span>`).join('');
+  // Weekly wins are a running count, not a finish, so they get one badge with a tally.
+  const weekly = weeklyHighScores[name] || 0;
+  const weeklyBadge = weekly
+    ? `<span class="m-badge" title="Weekly high score \u00D7 ${weekly}">\u{1F4A5}<span class="m-badge-year">x${weekly}</span></span>`
+    : '';
   const cabinet = badge('\u{1F3C6}', 'Champion', fin.titles)
                 + badge('\u{1F948}', 'Runner-up', fin.runnerUps)
-                + badge('\u{1F4A9}', 'Last place', fin.lasts);
+                + badge('\u{1F4A9}', 'Last place', fin.lasts)
+                + weeklyBadge;
   return `
     <div class="manager-card">
       <div class="m-name">${name}${cabinet ? `<span class="m-cabinet">${cabinet}</span>` : ''}</div>
-      ${a ? `
-        <div class="m-team">Allegiances: ${NFL_FULL_NAMES[a.nfl] || a.nfl} &amp; ${a.college}</div>
-      ` : `<div class="m-team">—</div>`}
+      <div class="m-earnings">Career Earnings: ${earningsHTML(careerEarnings[name])}</div>
       ${rival ? `<div class="m-history">League Rival${rival.opps.length === 1 ? '' : 's'}: <strong>${joinNames(rival.opps)}</strong> (${rival.n} playoff meeting${rival.n === 1 ? '' : 's'}${rival.opps.length === 1 ? '' : ' each'})</div>` : ''}
       ${goat ? `<div class="m-history">${name}'s GOAT: <strong>${goatDisplayName(goat.player)}</strong> (${goat.count}x drafted)</div>` : ''}
     </div>
