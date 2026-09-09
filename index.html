@@ -790,7 +790,7 @@
         </table>
       </div>
       <p class="table-note">* Regular season only.</p>
-      <p class="table-note" id="earningsNote" style="display:none;">&dagger; Earnings come from four pots: 1st place, 2nd place, best regular season record, and weekly high score.</p>
+      <p class="table-note" id="earningsNote" style="display:none;">Earnings come from four pots: 1st place, 2nd place, best regular season record, and weekly high score.</p>
       <div id="playoffBracketWrap" style="display:none;">
         <h2 class="section-title" style="font-size:20px; margin-top:32px;">Playoff Bracket</h2>
         <div id="playoffBracket"></div>
@@ -800,7 +800,7 @@
         <div class="standings-table-wrap">
           <table class="standings-table" id="standingsFormerTable">
             <thead>
-              <tr><th class="st-rank"></th><th>Manager</th><th>W-L-T</th><th>PF</th><th>PA</th><th>PCT</th><th>Earnings&dagger;</th></tr>
+              <tr><th class="st-rank"></th><th>Manager</th><th>W-L-T</th><th>PF</th><th>PA</th><th>PCT</th><th>Earnings</th></tr>
             </thead>
             <tbody id="standingsFormerBody"></tbody>
           </table>
@@ -1593,7 +1593,7 @@ function allTimeTheadHTML(state){
     <th class="sortable" data-key="pf">PF${sortIndicator(state,'pf')}</th>
     <th class="sortable" data-key="pa">PA${sortIndicator(state,'pa')}</th>
     <th class="sortable" data-key="pct">PCT${sortIndicator(state,'pct')}</th>
-    <th class="sortable" data-key="earnings">Earnings&dagger;${sortIndicator(state,'earnings')}</th>`;
+    <th class="sortable" data-key="earnings">Earnings${sortIndicator(state,'earnings')}</th>`;
 }
 
 function bindSortHeaders(theadEl, state, rerenderFn){
