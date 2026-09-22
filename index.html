@@ -1566,12 +1566,12 @@ function parseWins(record){ return parseInt(record.split('-')[0], 10) || 0; }
 // 2016 winner $520 (pot had $20 spare), 2017 winner $420 (pot was $80 short),
 // 2021-2024 winners $1,520 each (each had $40 spare).
 // 2016-2025 nets to exactly $0 across all 21 managers. 2026 is in progress:
-// twelve $300 buy-ins are in the pot ($3,600) and only week 1's $20 has been
-// paid out, so the ledger currently sits at -$3,580 by design. It returns to
+// twelve $300 buy-ins are in the pot ($3,600) and weeks 1-2 have paid $40,
+// so the ledger currently sits at -$3,560 by design. It returns to
 // $0 once the season's prizes are awarded.
 const careerEarnings = {
   // Current managers — includes the 2026 buy-in already paid
-  Whit:2790, Beau:1570, Andrew:920, Evan:80, Dave:0, Nick:-260,
+  Whit:2790, Beau:1570, Andrew:920, Evan:80, Dave:0, Nick:-240,
   Danny:-780, Corey:-1510, Steve:-1540, Mike:-1650, Craig:-1700, Ryan:-1720,
   // Former managers. Schlatz took the 2016 title and best record; Jimmy was
   // runner-up. The rest played a season or two and cashed nothing beyond
@@ -2561,12 +2561,12 @@ const managerRivals = computeManagerRivals();
 
 // Weekly high-score prizes won. 2016-2025 is complete (135 weeks, reconciled
 // against every team's season PF); 2026 accrues a week at a time.
-// 2026: wk1 Dave (That's Rice, 167.96).
+// 2026: wk1 Dave (That's Rice, 167.96); wk2 Nick (Easy Pickens, 135.42).
 // Former managers are included for the record even though they have no card:
 // Schlatz 2, Dylan 1, Ivan 1 (all 2016), Sameer 1 (2017).
 const weeklyHighScores = {
   Beau:16, Evan:16, Dave:16, Danny:14, Whit:12, Andrew:11, Steve:11,
-  Craig:8, Nick:8, Mike:7, Corey:6, Ryan:6,
+  Craig:8, Nick:9, Mike:7, Corey:6, Ryan:6,
   Schlatz:2, Dylan:1, Ivan:1, Sameer:1
 };
 
@@ -2730,7 +2730,7 @@ function renderHeadings(escaped){
     const head = (bar >= 0 ? text.slice(0, bar) : text).trim();
     const m = head.match(/^(\d+)\.\s+(.*)$/);
     const label = m ? m[2] : head;
-    const paren = label.match(/^(.*?)\s*\(([^()]*)\)\s*$/);
+    const paren = label.match(/^([^()]+?)\s*\((.*)\)\s*$/);   // outer parens only, so team names may contain their own
     const nameHTML = paren
       ? `<span class="post-h-name">${paren[1]}</span><span class="post-h-team">(${paren[2]})</span>`
       : `<span class="post-h-name">${label}</span>`;
