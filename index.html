@@ -1566,13 +1566,13 @@ function parseWins(record){ return parseInt(record.split('-')[0], 10) || 0; }
 // 2016 winner $520 (pot had $20 spare), 2017 winner $420 (pot was $80 short),
 // 2021-2024 winners $1,520 each (each had $40 spare).
 // 2016-2025 nets to exactly $0 across all 21 managers. 2026 is in progress:
-// twelve $300 buy-ins are in the pot ($3,600) and weeks 1-5 have paid $100,
-// so the ledger currently sits at -$3,500 by design. It returns to
+// twelve $300 buy-ins are in the pot ($3,600) and weeks 1-6 have paid $120,
+// so the ledger currently sits at -$3,480 by design. It returns to
 // $0 once the season's prizes are awarded.
 const careerEarnings = {
   // Current managers — includes the 2026 buy-in already paid
   Whit:2790, Beau:1570, Andrew:920, Evan:80, Dave:40, Nick:-240,
-  Danny:-760, Corey:-1510, Steve:-1540, Mike:-1650, Craig:-1700, Ryan:-1720,
+  Danny:-760, Corey:-1510, Steve:-1540, Mike:-1650, Craig:-1680, Ryan:-1720,
   // Former managers. Schlatz took the 2016 title and best record; Jimmy was
   // runner-up. The rest played a season or two and cashed nothing beyond
   // the odd weekly.
@@ -2563,12 +2563,12 @@ const managerRivals = computeManagerRivals();
 // against every team's season PF); 2026 accrues a week at a time.
 // 2026: wk1 Dave (That's Rice, 167.96); wk2 Nick (Easy Pickens, 135.42);
 // wk3 Dave (That's Rice, 138.30); wk4 Danny (Motion Party, 144.18);
-// wk5 Dave (That's Rice, 165.78).
+// wk5 Dave (That's Rice, 165.78); wk6 Craig (Chat ADP, 130.12).
 // Former managers are included for the record even though they have no card:
 // Schlatz 2, Dylan 1, Ivan 1 (all 2016), Sameer 1 (2017).
 const weeklyHighScores = {
   Beau:16, Evan:16, Dave:18, Danny:15, Whit:12, Andrew:11, Steve:11,
-  Craig:8, Nick:9, Mike:7, Corey:6, Ryan:6,
+  Craig:9, Nick:9, Mike:7, Corey:6, Ryan:6,
   Schlatz:2, Dylan:1, Ivan:1, Sameer:1
 };
 
