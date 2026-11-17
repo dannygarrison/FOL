@@ -400,6 +400,9 @@
   .post-stats .stat-v{color:var(--text);}
   /* Manager commentary — larger and looser than the stat lines it follows. */
   .post-blurb{margin:0 0 14px; font-size:15px; line-height:1.6; color:var(--text);}
+.post-figure{margin:12px 0 4px}
+.post-figure img{display:block;width:100%;max-width:520px;border-radius:10px;border:1px solid var(--line)}
+.post-figure figcaption{margin-top:6px;font-size:clamp(11px,3vw,13px);color:var(--muted);font-style:italic}
   .post-stats + .post-blurb{margin-top:2px;}
   /* "## 1. Whit" in a post body becomes a styled entry header. */
   .post-h{
@@ -1566,13 +1569,13 @@ function parseWins(record){ return parseInt(record.split('-')[0], 10) || 0; }
 // 2016 winner $520 (pot had $20 spare), 2017 winner $420 (pot was $80 short),
 // 2021-2024 winners $1,520 each (each had $40 spare).
 // 2016-2025 nets to exactly $0 across all 21 managers. 2026 is in progress:
-// twelve $300 buy-ins are in the pot ($3,600) and weeks 1-9 have paid $180,
-// so the ledger currently sits at -$3,420 by design. It returns to
+// twelve $300 buy-ins are in the pot ($3,600) and weeks 1-10 have paid $200,
+// so the ledger currently sits at -$3,400 by design. It returns to
 // $0 once the season's prizes are awarded.
 const careerEarnings = {
   // Current managers — includes the 2026 buy-in already paid
   Whit:2790, Beau:1570, Andrew:920, Evan:80, Dave:60, Nick:-220,
-  Danny:-740, Corey:-1510, Steve:-1540, Mike:-1650, Craig:-1680, Ryan:-1720,
+  Danny:-720, Corey:-1510, Steve:-1540, Mike:-1650, Craig:-1680, Ryan:-1720,
   // Former managers. Schlatz took the 2016 title and best record; Jimmy was
   // runner-up. The rest played a season or two and cashed nothing beyond
   // the odd weekly.
@@ -2565,11 +2568,11 @@ const managerRivals = computeManagerRivals();
 // wk3 Dave (That's Rice, 138.30); wk4 Danny (Motion Party, 144.18);
 // wk5 Dave (That's Rice, 165.78); wk6 Craig (Chat ADP, 130.12);
 // wk7 Nick (Skatterbrained, 135.78); wk8 Dave (That's Rice, 138.18);
-// wk9 Danny (Motion Party, 124.60).
+// wk9 Danny (Motion Party, 124.60); wk10 Danny (Motion Party, 163.12).
 // Former managers are included for the record even though they have no card:
 // Schlatz 2, Dylan 1, Ivan 1 (all 2016), Sameer 1 (2017).
 const weeklyHighScores = {
-  Beau:16, Evan:16, Dave:19, Danny:16, Whit:12, Andrew:11, Steve:11,
+  Beau:16, Evan:16, Dave:19, Danny:17, Whit:12, Andrew:11, Steve:11,
   Craig:9, Nick:10, Mike:7, Corey:6, Ryan:6,
   Schlatz:2, Dylan:1, Ivan:1, Sameer:1
 };
@@ -2783,6 +2786,16 @@ function renderRosterBlocks(escaped){
 // becomes a blurb paragraph. Lines that are already markup pass through.
 const STAT_LINE = /^(Result|Record|Week\s*\d+\s*Points|Points|Top Scorer|Record after|Streak):\s*(.*)$/;
 
+function renderImageBlocks(escaped){
+  return escaped.replace(/\[img\]([^\[\]]*?)\[\/img\]/g, (_, inner) => {
+    const parts = inner.split('|').map(s => s.trim());
+    const src = parts[0], cap = parts[1] || '';
+    if(!src) return '';
+    const caption = cap ? `<figcaption>${cap}</figcaption>` : '';
+    return `<figure class="post-figure"><img src="${src}" alt="${cap}" loading="lazy">${caption}</figure>`;
+  });
+}
+
 function renderBlocks(html){
   const out = [];
   let stats = [];
@@ -2814,7 +2827,7 @@ function renderPosts(posts){
   postsList.innerHTML = posts.map((p, i) => {
     const escaped = escapeHTML(p.body || '');
     const isLong = escaped.length > 380;
-    const body = renderBlocks(renderRosterBlocks(renderHeadings(escaped)));
+    const body = renderBlocks(renderImageBlocks(renderRosterBlocks(renderHeadings(escaped))));
     return `
     <div class="post">
       ${p.type ? `<div class="post-type">${escapeHTML(p.type)}</div>` : ''}
